@@ -4,6 +4,11 @@
 
 In this project, we create a serverless solution using AWS services like AWS Lambda, SNS, and EventBridge to send real-time NBA game updates to your email.
 
+Prerequisites
+Free account with subscription and API Key at sportsdata.io
+Personal AWS account with basic understanding of AWS and Python
+
+
 ## Key AWS Components Used
 - **AWS Lambda**: Executes code to fetch NBA game data.
 - **Amazon SNS**: Sends game updates to your email.
@@ -40,6 +45,16 @@ cd game-day-notifications
 
 ### 2. Set Up an IAM Policy
 - Create a policy in IAM to allow the SNS topic to publish messages.
+1 Open the IAM service in the AWS Management Console.
+2 Navigate to Policies → Create Policy.
+3 Click JSON and paste the JSON policy from gd_sns_policy.json file
+4 Replace REGION and ACCOUNT_ID with your AWS region and account ID.
+5 Click Next: Tags (you can skip adding tags).
+6 Click Next: Review.
+7 Enter a name for the policy (e.g., gd_sns_policy).
+8 Review and click Create Policy.
+
+
 - Use the following JSON in the policy editor (replace `TOPIC_ARN` with your actual SNS topic ARN):
   
 ```json
@@ -53,13 +68,35 @@ cd game-day-notifications
     }
   ]
 }
-3. Create an IAM Role
+
+3. Create an IAM Role for Lambda
 Create an IAM role for Lambda with the above policy and the AWSLambdaBasicExecutionRole for logging and monitoring.
 
+- Open the IAM service in the AWS Management Console.
+- Click Roles → Create Role.
+- Select AWS Service and choose Lambda.
+- Attach the following policies:
+ - SNS Publish Policy (gd_sns_policy) (created in the previous step).
+ - Lambda Basic Execution Role (AWSLambdaBasicExecutionRole) (an AWS managed policy).
+
+- Click Next: Tags (you can skip adding tags).
+- Click Next: Review.
+- Enter a name for the role (e.g., gd_role).
+- Review and click Create Role.
+- Copy and save the ARN of the role for use in the Lambda function.
+
 4. Create the Lambda Function
-In AWS Lambda, create a function using Python (e.g., Python 3.13).
-Attach the IAM role created above.
-Add the following Python script to fetch NBA game data and send it via SNS:
+- In AWS Lambda, create a function using Python (e.g., Python 3.13).
+- Open the AWS Management Console and navigate to the Lambda service.
+- Click Create Function.
+- Select Author from Scratch.
+- Enter a function name (e.g., gd_notifications).
+- Choose Python 3.x as the runtime.
+- Assign the IAM role created earlier (gd_role) to the function.
+- Under the Function Code section:
+
+- Copy the content of the src/gd_notifications.py file from the repository.
+- Paste it into the inline code editor.
 
 python
 
@@ -102,15 +139,33 @@ def lambda_handler(event, context):
 
 Add environment variables for NBA_API_KEY and SNS_TOPIC_ARN in the function's configuration tab.
 
+
 5. Test the Lambda Function
 Create a test event and execute the function.
 If successful, you’ll receive NBA game updates via email.
 
 6. Schedule Lambda with EventBridge
 In EventBridge, create a rule to trigger Lambda periodically.
-Use a cron expression to define the schedule (e.g., every 5 minutes).
 
+- Navigate to the Eventbridge service in the AWS Management Console.
+- Go to Rules → Create Rule.
+- Select Event Source: Schedule.
+- Set the cron schedule for when you want updates (e.g., hourly).define the schedule (e.g., every 5 minutes).
+- Under Targets, select the Lambda function (gd_notifications) and save the rule.
+
+Test the System
+- Open the Lambda function in the AWS Management Console.
+- Create a test event to simulate execution.
+- Run the function and check CloudWatch Logs for errors.
+- Verify that SMS notifications are sent to the subscribed users.
 
 Conclusion
 This project demonstrates how to build a serverless, scalable NBA game notification system with AWS Lambda, SNS, and EventBridge. It's a cost-effective solution for real-time sports updates.
+
+- What We Learned
+- Designing a notification system with AWS SNS and Lambda.
+- Securing AWS services with least privilege IAM policies.
+- Automating workflows using EventBridge.
+- Integrating external APIs into cloud-based workflows.
+
 
